@@ -2,6 +2,7 @@
 local bc
 if _VERSION=="Lua 5.1" then
  require "bc"
+ bc=_G["bc"]
 else
  bc=require"bc"
 end

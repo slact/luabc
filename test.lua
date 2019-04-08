@@ -1,208 +1,145 @@
 -- test bc library
-local bc
-if _VERSION=="Lua 5.1" then
- require "bc"
- bc=_G["bc"]
-else
- bc=require"bc"
-end
+
+local bc=require"bc"
+local qd=bc
 
 ------------------------------------------------------------------------------
-print(bc.version)
+print(qd.version)
+qd.digits(64)
 
 ------------------------------------------------------------------------------
 print""
 print"Pi algorithm of order 4"
 
-bc.digits(65)
-PI="3.1415926535897932384626433832795028841971693993751058209749445923078164062862090"
-pi=bc.number(PI)
+math.new=tonumber
 
 -- http://pauillac.inria.fr/algo/bsolve/constant/pi/pi.html
-function A2()
- local x=bc.sqrt(2)
- local p=2+x
- local y=bc.sqrt(x)
- print(-1,p)
- x=(y+1/y)/2
- p=p*(x+1)/(y+1)
- print(0,p)
- for i=1,20 do
-  local P=p
-  local t=bc.sqrt(x)
-  y=(y*t+1/t)/(y+1)
-  x=(t+1/t)/2
-  p=p*(x+1)/(y+1)
-  print(i,p)
-  if p==P then break end
- end
- return p
+function test(qd)
+	PI=qd.new"3.1415926535897932384626433832795028841971693993751058209749445923078164062862090"
+	local x=qd.sqrt(2)
+	local p=2+x
+	local y=qd.sqrt(x)
+	print(-1,p)
+	x=(y+1/y)/2
+	p=p*(x+1)/(y+1)
+	print(0,p)
+	for i=1,20 do
+		local P=p
+		local t=qd.sqrt(x)
+		y=(y*t+1/t)/(y+1)
+		x=(t+1/t)/2
+		p=p*(x+1)/(y+1)
+		print(i,p)
+		if p==P then break end
+	end
+	print("exact",PI)
+	print("-",qd.abs(PI-p))
+	return p
 end
 
-function bc.abs(x) if bc.isneg(x) then return -x else return x end end
-
-p=A2()
-print("exact",pi)
-print("-",bc.abs(pi-p))
+print"fp"
+test(math)
+print"qd"
+test(qd)
 
 ------------------------------------------------------------------------------
 print""
 print"Square root of 2"
 
 function mysqrt(x)
- local y,z=x,x
- repeat z,y=y,(y+x/y)/2 until z==y
- return y
+	local y,z=x,x
+	repeat z,y=y,(y+x/y)/2 until z==y
+	return y
 end
 
-print("f math",math.sqrt(2))
-print("f mine",mysqrt(2))
-a=bc.sqrt(2) print("B sqrt",a)
-b=mysqrt(bc.number(2)) print("B mine",b)
-R=bc.number"1.414213562373095048801688724209698078569671875376948073176679737990732478462107038850387534327641573"
+print("fp math",math.sqrt(2))
+print("fp mine",mysqrt(2))
+a=qd.sqrt(2) print("qd sqrt",a)
+b=mysqrt(qd.new(2)) print("qd mine",b)
+R=qd.new"1.414213562373095048801688724209698078569671875376948073176679737990732478462107038850387534327641573"
 print("exact",R)
-print(a==b,a<b,a>b,bc.compare(a,b))
-
-------------------------------------------------------------------------------
-print""
-print"Fibonacci numbers as digits in fraction"
-
-x=99989999
-bc.digits(68)
-a=bc.div(1,x)
-s=bc.tostring(a)
-print("1/"..x.." =")
-print("",s)
-s=string.gsub(s,"0(%d%d%d)"," %1")
-print("",s)
-
-------------------------------------------------------------------------------
-print""
-print"Factorials"
-
-function factorial(n,f)
- for i=2,n do f=f*i end
- return f
-end
-
-one=bc.number(1)
-for i=1,30 do
-  local f=factorial(i,1)
-  local b=factorial(i,one)
- --print(i,factorial(i,1),factorial(i,one))
-   f=string.format("%.0f",f)
- --print(i,bc.number(f)==b,string.format("%.0f",f),b)
- print(i,bc.number(f)==b,f,b)
-end
-
-------------------------------------------------------------------------------
-print""
-print"Comparisons"
-
-bc.digits(4)
-a=bc.div(4,2)
-b=bc.number(1)
-print("a","b","a==b","a<b","a>b","bc.compare(a,b)")
-print(a,b,a==b,a<b,a>b,bc.compare(a,b))
-b=b+1
-print(a,b,a==b,a<b,a>b,bc.compare(a,b))
-b=b+1
-print(a,b,a==b,a<b,a>b,bc.compare(a,b))
-
-------------------------------------------------------------------------------
-print""
-print"Modulo"
-
-A=20.2
-B=7.48
-a=bc.number(A)
-b=bc.number(B)
-print("mod",bc.mod(a,b))
-print("MOD",bc.mod(A,B))
-print("def",a-bc.trunc(a/b)*b)
-print("oper",a%b)
-print("real",A%B)
-
-------------------------------------------------------------------------------
-print""
-print"Trunc"
-for n=0,10 do
-	local t=bc.trunc(pi,n)
-	print(n,t,bc.tostring(t)==string.sub(PI,1,n+2))
-end
 
 ------------------------------------------------------------------------------
 print""
 print("RSA")
 bc.digits(0)
+B=bc
 
-function string2bc(s)
-       local x=bc.number(0)
+header="="
+assert(#header==1)
+
+function text2B(s)
+       local x=B.new(0)
        for i=1,#s do
                x=256*x+s:byte(i)
        end
        return x
 end
 
-function bc2string(x)
+function b2text(x)
 	if x:iszero() then
 		return ""
 	else
 		local r
-		x,r=bc.divmod(x,256)
-		return bc2string(x)..string.char(r:tonumber())
+		x,r=B.quotrem(x,256)
+		return b2text(x)..string.char(r:tonumber())
        end
 end
 
-function hex2bc(s)
-	local x=bc.number(0)
-	for i=1,#s do
-		x=16*x+tonumber(s:sub(i,i),16)
-	end
-	return x
+function B2text(x)
+	x=b2text(x)
+	assert(x:sub(1,1)==header)
+	return x:sub(2)
 end
 
 public="10001"
-private="816f0d36f0874f9f2a78acf5643acda3b59b9bcda66775b7720f57d8e9015536160e728230ac529a6a3c935774ee0a2d8061ea3b11c63eed69c9f791c1f8f5145cecc722a220d2bc7516b6d05cbaf38d2ab473a3f07b82ec3fd4d04248d914626d2840b1bd337db3a5195e05828c9abf8de8da4702a7faa0e54955c3a01bf121"
-modulus="bfedeb9c79e1c6e425472a827baa66c1e89572bbfe91e84da94285ffd4c7972e1b9be3da762444516bb37573196e4bef082e5a664790a764dd546e0d167bde1856e9ce6b9dc9801e4713e3c8cb2f12459788a02d2e51ef37121a0f7b086784f0e35e76980403041c3e5e98dfa43ab9e6e85558c5dc00501b2f2a2959a11db21f"
+public=65537
+private="21216960821007814588960614390762841130569257066134254217244829964166960313603491419452980041842232401031783080783880766977126835656785351324646356132482893330044628606968265135168815301544329093219595232048337692815143928570515249251387658868931468312357689967540610052476964083797859233540117455097"
+modulus="120378838310656146196581402937185033258948783684810026719381388742239639691163710255102584451754340363312978564112061445696186060252276929934503158241250532742249087072136730672705057927340298151300358954425756754140677885188853335290225279244158563370031548251283457509517872411021011738313314053603"
 
-d=hex2bc(public)
+d=B.new(public)
 	print("public key")
 	print(d)
-e=hex2bc(private)
+
+e=B.new(private)
 	print("private key")
 	print(e)
-n=hex2bc(modulus)
+
+n=B.new(modulus)
 	print("modulus")
 	print(n)
+	print""
 
 message="The quick brown fox jumps over the lazy dog"
 	print("message as text")
 	print(message)
 
-m=string2bc(message)
-	print("encoded message")
+m=text2B(header..message)
+	print("encoded message in decimal")
 	print(m)
+	--print("encoded message in hex")
+	--print(B2hex(m))
 	assert(m<n)
-	assert(message==bc2string(m))
+	assert(message==B2text(m))
 
-	print("encrypted message")
-x=bc.powmod(m,e,n)
+x=B.powmod(m,e,n)
+	print("encrypted message in decimal")
 	print(x)
+	--print("encrypted message in hex")
+	--print(B2hex(x))
 
-	print("decrypted message")
-y=bc.powmod(x,d,n)
+y=B.powmod(x,d,n)
+	print("decrypted message in decimal")
 	print(y)
+	--print("decrypted message in hex")
+	--print(B2hex(y))
 	assert(y==m)
-y=bc2string(y)
-	print("decrypted message as text")
+
+y=B2text(y)
+	print("decoded message as text")
 	print(y)
 	assert(y==message)
 
---print"" print("trimmed",bc.trim())
 ------------------------------------------------------------------------------
-
 print""
-print(bc.version)
-
--- eof
+print(B.version)

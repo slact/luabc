@@ -1,5 +1,5 @@
 package="luabc"
-local _version = "1.1"
+local _version = "1.2"
 version = _version .. "-1"
 source = {
   url="git://github.com/slact/luabc",

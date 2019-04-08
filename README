@@ -1,29 +1,20 @@
-This is a big-number library for Lua 5.1-5.3. It is based on the arbitrary
-precision library number.c written by Philip A. Nelson for GNU bc-1.06:
-	http://www.gnu.org/software/bc/
+This is an arbitrary precision library extracted from GNU bc-1.07,
+available at http://www.gnu.org/software/bc/ .
 
-To build the library, run
-  luarocks build luabc
-  
-For old installation instructions, see
-	http://www.tecgraf.puc-rio.br/~lhf/ftp/lua/install.html
+This code is subject to GNU LGPL. See COPYING.LIB.
 
-There is no manual but the library is simple and intuitive; see the summary
-below. Read also test.lua, which shows the library in action.
+The file number.c has been changed slightly to fix a memory leak.
+My config.h disables code unnecessary for my needs.
+Here are the differences:
 
-This code is hereby placed in the public domain, except number.c and number.h,
-which are subject to GPL.
-
-Please send comments, suggestions, and bug reports to lhf@tecgraf.puc-rio.br .
-
--------------------------------------------------------------------------------
-
-bc library:
- __add(x,y) 	 __pow(x,y) 	 digits([n]) 	 mul(x,y) 	 sub(x,y) 
- __div(x,y) 	 __sub(x,y) 	 div(x,y) 	 neg(x) 	 tonumber(x) 
- __eq(x,y) 	 __tostring(x) 	 divmod(x,y) 	 number(x) 	 tostring(x) 
- __lt(x,y) 	 __unm(x) 	 isneg(x) 	 pow(x,y) 	 trunc(x,[n]) 
- __mod(x,y) 	 add(x,y) 	 iszero(x) 	 powmod(x,y,m) 	 version 
- __mul(x,y) 	 compare(x,y) 	 mod(x,y) 	 sqrt(x) 
-
--------------------------------------------------------------------------------
+% diff bc-1.07.1/lib/number.c ./number.c 
+45a46
+> #ifndef REMOVE_THIS_FOR_ME
+52a54
+> #endif
+1192a1195
+>   bc_free_num (&parity);
+1371a1375
+> #ifndef REMOVE_THIS_FOR_ME
+1527a1532
+> #endif
